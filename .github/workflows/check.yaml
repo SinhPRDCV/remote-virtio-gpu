@@ -122,11 +122,12 @@ jobs:
           echo run ps-command to list rvgpu and glmark2 processes
           ps -aux | grep rvgpu
           ps -aux | grep glmark2
-          sudo pkill glmark2-es2-drm
+          #sudo pkill glmark2-es2-drm
+      
           sudo pkill rvgpu-proxy
-          wait
+          #wait
           sudo pkill rvgpu-renderer
-          sudo modprobe -rf virtio-lo
+          #sudo modprobe -rf virtio-lo
           echo run ps-command to list rvgpu and glmark2 processes 
           ps -aux | grep rvgpu
           ps -aux | grep glmark2
