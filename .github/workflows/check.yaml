@@ -19,11 +19,11 @@ on:
     branches:
       - 'main'
       - 'release/**'
-    paths:
-      - '**.c'
-      - '**.h'
-      - 'CMakeLists.txt'
-      - '**.yaml'
+    #paths:
+    #  - '**.c'
+    #  - '**.h'
+    #  - 'CMakeLists.txt'
+    #  - '**.yaml'
     types:
       - opened
       - synchronize
@@ -94,18 +94,21 @@ jobs:
         run: |
             pwd
             echo current bash pid = $$
-            chmod +x $(pwd)/.github/workflows/receiver.sh
-            chmod +x $(pwd)/.github/workflows/sender.sh
-            $(pwd)/.github/workflows/receiver.sh
-            $(pwd)/.github/workflows/sender.sh
+            #chmod +x $(pwd)/.github/workflows/receiver.sh
+            #chmod +x $(pwd)/.github/workflows/sender.sh
+            #$(pwd)/.github/workflows/receiver.sh
+            #$(pwd)/.github/workflows/sender.sh
+            ../../../patch/receiver.sh
+            ../../../patch/sender.sh
             
       - name: Run Verify
         id: run_verify
         shell: bash
         run: |
           echo current bash pid = $$
-          chmod +x $(pwd)/.github/workflows/run_verify.sh
-          $(pwd)/.github/workflows/run_verify.sh
+          #chmod +x $(pwd)/.github/workflows/run_verify.sh
+          #$(pwd)/.github/workflows/run_verify.sh
+          ../../../patch/run_verify.sh
         
       - name: destroy test
         timeout-minutes: 1
@@ -125,6 +128,7 @@ jobs:
           sudo modprobe -rf virtio-lo
           echo run ps-command to list rvgpu processes 
           ps -aux | grep rvgpu
+        continue-on-error: true
                    
           #if (( $OUTCOME=="cancelled"))
           #then
