@@ -119,15 +119,17 @@ jobs:
         run: |
           #sleep 30
           jobs -l
-          echo run ps-command to list rvgpu processes
+          echo run ps-command to list rvgpu and glmark2 processes
           ps -aux | grep rvgpu
+          ps -aux | grep glmark2
           sudo pkill glmark2-es2-drm
           sudo pkill rvgpu-proxy
           wait
           sudo pkill rvgpu-renderer
           sudo modprobe -rf virtio-lo
-          echo run ps-command to list rvgpu processes 
+          echo run ps-command to list rvgpu and glmark2 processes 
           ps -aux | grep rvgpu
+          ps -aux | grep glmark2
         continue-on-error: true
                    
           #if (( $OUTCOME=="cancelled"))
