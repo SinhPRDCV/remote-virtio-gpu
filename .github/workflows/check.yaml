@@ -124,10 +124,11 @@ jobs:
           ps -aux | grep glmark2
           #sudo pkill glmark2-es2-drm
       
-          sudo pkill rvgpu-proxy
+          #sudo pkill rvgpu-proxy
           #wait
-          sudo pkill rvgpu-renderer
+          #sudo pkill rvgpu-renderer
           #sudo modprobe -rf virtio-lo
+          ../../../patch/run_verify.sh
           echo run ps-command to list rvgpu and glmark2 processes 
           ps -aux | grep rvgpu
           ps -aux | grep glmark2
