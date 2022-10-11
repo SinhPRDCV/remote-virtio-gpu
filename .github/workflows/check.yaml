@@ -69,7 +69,7 @@ jobs:
       #- name: Install UHMI
       #  shell: bash
       #  id: install_uhmi
-      #  run: sudo make install -C build      
+      #  run: sudo make install -C build       
 
   run_uhmi:
     runs-on: self-hosted
