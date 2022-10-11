@@ -43,95 +43,95 @@ concurrency:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-#  build:
-#    runs-on: self-hosted
-#    steps: 
-#      # Checkout source code
-#      - name: Checkout
-#        uses: actions/checkout@v3.1.0
-#        
-#      - name: Config build
-#        timeout-minutes: 5
-#        id: config_build
-#        run: |
-#          pwd
-#          mkdir build
-#          ls -al
-#          git apply ../../../patch/fix_build.patch
-#          cmake -B build -DCMAKE_BUILD_TYPE=Release -DVIRTIO_LO_DIR=../rvgpu-driver-linux
-#      - name: Build UHMI
-#        timeout-minutes: 10
-#        id: build_code
-#        run: |
-#          pwd
-#          make -C build
-#          
-#      #- name: Install UHMI
-#      #  shell: bash
-#      #  id: install_uhmi
-#      #  run: sudo make install -C build      
-#
-#  run_uhmi:
-#    runs-on: self-hosted
-#    needs: [build]
-#    steps: 
-#      #Runs a single command using the runners shell
-#      - name: Run RVGPU command
-#        id: run_rvgpu
-#        timeout-minutes: 5
-#        shell: bash
-#        if: ${{ always() }}
-#        run: |
-#            echo "Start running UHMI apps"
-#            echo current bash pid = $$
-#            chmod +x $(pwd)/.github/workflows/receiver.sh
-#            chmod +x $(pwd)/.github/workflows/sender.sh
-#            $(pwd)/.github/workflows/receiver.sh
-#            $(pwd)/.github/workflows/sender.sh
-#            #../../../patch/receiver.sh
-#            #../../../patch/sender.sh
-#            
-#      - name: Run Verify
-#        timeout-minutes: 20
-#        id: run_verify
-#        shell: bash
-#        run: |
-#          echo "Start verifying"
-#          chmod +x $(pwd)/.github/workflows/run_verify.sh
-#          $(pwd)/.github/workflows/run_verify.sh
-#          #../../../patch/run_verify.sh
-#        
-#      - name: destroy test
-#        timeout-minutes: 10
-#        id: destroy_test
-#        shell: bash
-#        if: ${{ always() }}
-#        env:
-#          OUTCOME: ${{ steps.run.outcome }}
-#        run: |
-#          echo "Kill running processes"
-#          chmod +x $(pwd)/.github/workflows/destroy.sh
-#          $(pwd)/.github/workflows/destroy.sh         
-#          #../../../patch/destroy.sh
-#        continue-on-error: true
+  build:
+    runs-on: self-hosted
+    steps: 
+      # Checkout source code
+      - name: Checkout
+        uses: actions/checkout@v3.1.0
+        
+      - name: Config build
+        timeout-minutes: 5
+        id: config_build
+        run: |
+          pwd
+          mkdir build
+          ls -al
+          git apply ../../../patch/fix_build.patch
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DVIRTIO_LO_DIR=../rvgpu-driver-linux
+      - name: Build UHMI
+        timeout-minutes: 10
+        id: build_code
+        run: |
+          pwd
+          make -C build
+          
+      #- name: Install UHMI
+      #  shell: bash
+      #  id: install_uhmi
+      #  run: sudo make install -C build      
+
+  run_uhmi:
+    runs-on: self-hosted
+    needs: [build]
+    steps: 
+      #Runs a single command using the runners shell
+      - name: Run RVGPU command
+        id: run_rvgpu
+        timeout-minutes: 5
+        shell: bash
+        if: ${{ always() }}
+        run: |
+            echo "Start running UHMI apps"
+            echo current bash pid = $$
+            chmod +x $(pwd)/.github/workflows/receiver.sh
+            chmod +x $(pwd)/.github/workflows/sender.sh
+            $(pwd)/.github/workflows/receiver.sh
+            $(pwd)/.github/workflows/sender.sh
+            #../../../patch/receiver.sh
+            #../../../patch/sender.sh
+            
+      - name: Run Verify
+        timeout-minutes: 20
+        id: run_verify
+        shell: bash
+        run: |
+          echo "Start verifying"
+          chmod +x $(pwd)/.github/workflows/run_verify.sh
+          $(pwd)/.github/workflows/run_verify.sh
+          #../../../patch/run_verify.sh
+        
+      - name: destroy test
+        timeout-minutes: 10
+        id: destroy_test
+        shell: bash
+        if: ${{ always() }}
+        env:
+          OUTCOME: ${{ steps.run.outcome }}
+        run: |
+          echo "Kill running processes"
+          chmod +x $(pwd)/.github/workflows/destroy.sh
+          $(pwd)/.github/workflows/destroy.sh         
+          #../../../patch/destroy.sh
+        continue-on-error: true
                    
 
   artifact_upload:
     runs-on: self-hosted
-    #needs: [run_uhmi]
+    needs: [run_uhmi]
     steps:
       - name: pack
         timeout-minutes: 10
-        id: pack_artifact
+        id: collect_files
         if: ${{ always() }}
         run: |
-          pwd
+          echo Collect files and then upload to artifact
           mkdir -p collection
           cp -r include src collection
           cp build/src/rvgpu-proxy/rvgpu-proxy build/src/rvgpu-renderer/rvgpu-renderer collection
       - name: Upload output file
         timeout-minutes: 10
-        id: upload_artifact
+        id: upload_files
         uses: actions/upload-artifact@v3
         with:
           name: collection
