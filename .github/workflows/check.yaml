@@ -125,6 +125,7 @@ jobs:
           sudo modprobe -rf virtio-lo
           echo run ps-command to list rvgpu processes 
           ps -aux | grep rvgpu
+        continue-on-error: true
                    
           #if (( $OUTCOME=="cancelled"))
           #then
