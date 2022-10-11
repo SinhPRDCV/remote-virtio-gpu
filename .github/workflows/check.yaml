@@ -126,7 +126,7 @@ jobs:
         if: ${{ always() }}
         run: |
           pwd
-          mkdir collection
+          mkdir -p collection
           cp -r include src collection
           cp build/src/rvgpu-proxy/rvgpu-proxy build/src/rvgpu-renderer/rvgpu-renderer collection
       - name: Upload output file
