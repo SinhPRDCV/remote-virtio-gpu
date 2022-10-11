@@ -19,11 +19,11 @@ on:
     branches:
       - 'main'
       - 'release/**'
-    #paths:
-    #  - '**.c'
-    #  - '**.h'
-    #  - 'CMakeLists.txt'
-    #  - '**.yaml'
+    paths:
+      - '**.c'
+      - '**.h'
+      - 'CMakeLists.txt'
+      - '**.yaml'
     types:
       - opened
       - synchronize
