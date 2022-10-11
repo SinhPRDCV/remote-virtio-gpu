@@ -128,7 +128,7 @@ jobs:
           #wait
           #sudo pkill rvgpu-renderer
           #sudo modprobe -rf virtio-lo
-          ../../../patch/run_verify.sh
+          ../../../patch/destroy.sh
           echo run ps-command to list rvgpu and glmark2 processes 
           ps -aux | grep rvgpu
           ps -aux | grep glmark2
