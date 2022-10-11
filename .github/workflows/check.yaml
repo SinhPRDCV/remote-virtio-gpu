@@ -1,0 +1,161 @@
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow
+  # On pushing to main or release branch, with changing .c and .h files.
+  push:
+    branches:
+      - 'main'
+      - 'release/**' 
+    paths:
+      - '**.c'
+      - '**.h'
+      - 'CMakeLists.txt'    
+      - '**.yaml'
+        
+  # On pull request events 
+  pull_request:
+    branches:
+      - 'main'
+      - 'release/**'
+    paths:
+      - '**.c'
+      - '**.h'
+      - 'CMakeLists.txt'
+      - '**.yaml'
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Cancel current running workflow if new commit comes, trigger new workflow for this new commit 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+  
+# Setting environment variables for workflow
+env:
+  SAVE_DIR_NAME: collection
+  WORKING_DIR_PATH: ~/Documents/fy21-gvh431_remote-virtio-gpu/
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    runs-on: self-hosted
+    steps: 
+      # Checkout source code
+      - name: Checkout
+        uses: actions/checkout@v3.1.0
+        
+      - name: Config build
+        shell: bash
+        id: config_build
+        run: |
+          pwd
+          cd $WORKING_DIR_PATH
+          pwd
+          mkdir build
+          ls -al
+          git apply ../fix_build.patch
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DVIRTIO_LO_DIR=../rvgpu-driver-linux
+      - name: Build UHMI
+        shell: bash
+        id: build_code
+        run: |
+          cd $WORKING_DIR_PATH
+          make -C build
+          
+      #- name: Install UHMI
+      #  shell: bash
+      #  id: install_uhmi
+      #  run: sudo make install -C build      
+
+  run_uhmi:
+    runs-on: self-hosted
+    #needs: [build]
+    steps: 
+      #Runs a single command using the runners shell
+      - name: Clean previous running steps
+        id: clear_previous
+        shell: bash
+        run: |
+          sudo pkill glmark2-es2-drm
+          sudo pkill rvgpu-proxy        
+          sudo pkill rvgpu-renderer
+          sudo rmmod virtio_lo
+        continue-on-error: true
+        
+      - name: Run RVGPU command
+        id: run_rvgpu
+        shell: bash
+        if: ${{ always() }}
+        run: |
+            pwd
+            tree -d .
+            echo current bash pid = $$
+            ./receiver.sh
+            ./sender.sh
+            
+            #while ($(pgrep -x "glmark2-es2-drm" > /dev/null))
+            #do
+            #  trap "echo the signal code received is $?; sudo pkill glmark2-es2-drm; sudo pkill rvgpu-proxy; sudo pkill rvgpu-renderer" 2 5 9
+            #done
+            #/home/nghia/Downloads/trap.sh
+            #/home/nghia/Desktop/Test/get.sh
+            
+            #/home/nghia/Documents/glmark2/build/test/test_glmark2
+            
+      - name: Run Verify
+        id: run_verify
+        shell: bash
+        run: |
+          echo current bash pid = $$
+          ./run_verify.sh
+        
+      - name: destroy test
+        timeout-minutes: 1
+        shell: bash
+        if: ${{ always() }}
+        env:
+          OUTCOME: ${{ steps.run.outcome }}
+        run: |
+          #sleep 30
+          jobs -l
+          echo run ps-command to list rvgpu processes
+          ps -aux | grep rvgpu
+          sudo pkill glmark2-es2-drm
+          sudo pkill rvgpu-proxy
+          wait
+          sudo pkill rvgpu-renderer
+          sudo modprobe -rf virtio-lo
+          echo run ps-command to list rvgpu processes 
+          ps -aux | grep rvgpu
+                   
+          #if (( $OUTCOME=="cancelled"))
+          #then
+          #sleep 1
+          #sudo reboot -f&
+          #fi
+  artifact_upload:
+    runs-on: self-hosted
+    needs: [run_uhmi]
+    steps:
+      - name: pack
+        shell: bash
+        if: ${{ always() }}
+        run: |
+          cd $WORKING_DIR_PATH
+          mkdir $SAVE_DIR_NAME
+          cp -r include src $SAVE_DIR_NAME
+          cp build/src/rvgpu-proxy/rvgpu-proxy build/src/rvgpu-proxy/rvgpu-proxy $SAVE_DIR_NAME
+          cp build/src/rvgpu-proxy/rvgpu-proxy build/src/rvgpu-renderer/rvgpu-renderer $SAVE_DIR_NAME
+      - name: Upload output file
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: collection
+          path: /home/nghia/Documents/fy21-gvh431_remote-virtio-gpu/collection
