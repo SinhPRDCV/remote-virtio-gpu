@@ -56,17 +56,15 @@ jobs:
         id: config_build
         run: |
           pwd
-          cd $WORKING_DIR_PATH
-          pwd
           mkdir build
           ls -al
-          git apply ../fix_build.patch
+          git apply ../../../patch/fix_build.patch
           cmake -B build -DCMAKE_BUILD_TYPE=Release -DVIRTIO_LO_DIR=../rvgpu-driver-linux
       - name: Build UHMI
         shell: bash
         id: build_code
         run: |
-          cd $WORKING_DIR_PATH
+          pwd
           make -C build
           
       #- name: Install UHMI
@@ -76,18 +74,18 @@ jobs:
 
   run_uhmi:
     runs-on: self-hosted
-    #needs: [build]
+    needs: [build]
     steps: 
       #Runs a single command using the runners shell
-      - name: Clean previous running steps
-        id: clear_previous
-        shell: bash
-        run: |
-          sudo pkill glmark2-es2-drm
-          sudo pkill rvgpu-proxy        
-          sudo pkill rvgpu-renderer
-          sudo rmmod virtio_lo
-        continue-on-error: true
+      #- name: Clean previous running steps
+      #  id: clear_previous
+      #  shell: bash
+      #  run: |
+      #    sudo pkill glmark2-es2-drm
+      #    sudo pkill rvgpu-proxy        
+      #    sudo pkill rvgpu-renderer
+      #    sudo rmmod virtio_lo
+      #  continue-on-error: true
         
       - name: Run RVGPU command
         id: run_rvgpu
@@ -95,26 +93,19 @@ jobs:
         if: ${{ always() }}
         run: |
             pwd
-            tree -d .
             echo current bash pid = $$
-            ./receiver.sh
-            ./sender.sh
-            
-            #while ($(pgrep -x "glmark2-es2-drm" > /dev/null))
-            #do
-            #  trap "echo the signal code received is $?; sudo pkill glmark2-es2-drm; sudo pkill rvgpu-proxy; sudo pkill rvgpu-renderer" 2 5 9
-            #done
-            #/home/nghia/Downloads/trap.sh
-            #/home/nghia/Desktop/Test/get.sh
-            
-            #/home/nghia/Documents/glmark2/build/test/test_glmark2
+            chmod +x $(pwd)/.github/workflows/receiver.sh
+            chmod +x $(pwd)/.github/workflows/sender.sh
+            $(pwd)/.github/workflows/receiver.sh
+            $(pwd)/.github/workflows/sender.sh
             
       - name: Run Verify
         id: run_verify
         shell: bash
         run: |
           echo current bash pid = $$
-          ./run_verify.sh
+          chmod +x $(pwd)/.github/workflows/run_verify.sh
+          $(pwd)/.github/workflows/run_verify.sh
         
       - name: destroy test
         timeout-minutes: 1
@@ -148,7 +139,7 @@ jobs:
         shell: bash
         if: ${{ always() }}
         run: |
-          cd $WORKING_DIR_PATH
+          pwd
           mkdir $SAVE_DIR_NAME
           cp -r include src $SAVE_DIR_NAME
           cp build/src/rvgpu-proxy/rvgpu-proxy build/src/rvgpu-proxy/rvgpu-proxy $SAVE_DIR_NAME
@@ -158,4 +149,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: collection
-          path: /home/nghia/Documents/fy21-gvh431_remote-virtio-gpu/collection
+          path: $(pwd)/collection
