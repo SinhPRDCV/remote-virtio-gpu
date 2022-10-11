@@ -1,7 +1,7 @@
 #!/bin/bash
 sudo su <<EOF
 modprobe virtio-gpu
-modprobe /home/nghia/actions-runner/_work/remote-virtio-gpu/remote-virtio-gpu/build/src/rvgpu-driver-linux/virtio_lo.ko
+modprobe virtio_lo
 rm -rf /run/user/0
 mkdir -p /run/user/0
 export XDG_RUNTIME_DIR=/run/user/0
